@@ -63,6 +63,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_28_120000) do
     t.string "institution_name"
     t.string "institution_domain"
     t.text "notes"
+    t.jsonb "holdings_snapshot_data"
+    t.datetime "holdings_snapshot_at"
     t.uuid "owner_id"
     t.index ["accountable_id", "accountable_type"], name: "index_accounts_on_accountable_id_and_accountable_type"
     t.index ["accountable_type"], name: "index_accounts_on_accountable_type"
@@ -302,10 +304,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_28_120000) do
     t.string "api_key", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "exchange_portfolio_id"
-    t.string "exchange_connection_id"
-    t.index ["exchange_connection_id"], name: "index_coinstats_items_on_exchange_connection_id"
-    t.index ["family_id", "exchange_portfolio_id"], name: "index_coinstats_items_on_family_id_and_exchange_portfolio_id", unique: true, where: "(exchange_portfolio_id IS NOT NULL)"
     t.index ["family_id"], name: "index_coinstats_items_on_family_id"
     t.index ["status"], name: "index_coinstats_items_on_status"
   end
@@ -579,7 +577,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_28_120000) do
     t.uuid "account_id", null: false
     t.uuid "security_id", null: false
     t.date "date", null: false
-    t.decimal "qty", precision: 24, scale: 8, null: false
+    t.decimal "qty", precision: 19, scale: 4, null: false
     t.decimal "price", precision: 19, scale: 4, null: false
     t.decimal "amount", precision: 19, scale: 4, null: false
     t.string "currency", null: false
@@ -1182,7 +1180,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_28_120000) do
     t.index ["country_code"], name: "index_securities_on_country_code"
     t.index ["exchange_operating_mic"], name: "index_securities_on_exchange_operating_mic"
     t.index ["kind"], name: "index_securities_on_kind"
-    t.check_constraint "kind::text = ANY (ARRAY['standard'::character varying, 'cash'::character varying]::text[])", name: "chk_securities_kind"
+    t.check_constraint "kind = ANY (ARRAY['standard'::text, 'cash'::text])", name: "chk_securities_kind"
   end
 
   create_table "security_prices", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -1422,7 +1420,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_28_120000) do
 
   create_table "trades", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "security_id", null: false
-    t.decimal "qty", precision: 24, scale: 8
+    t.decimal "qty", precision: 19, scale: 4
     t.decimal "price", precision: 19, scale: 10
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -1511,6 +1509,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_28_120000) do
     t.jsonb "locked_attributes", default: {}
     t.string "kind", default: "reconciliation", null: false
   end
+
+# Could not dump table "vector_store_chunks" because of following StandardError
+#   Unknown type 'vector(768)' for column 'embedding'
+
 
   create_table "vehicles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
